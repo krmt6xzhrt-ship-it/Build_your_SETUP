@@ -1,0 +1,13 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {presets} from '../src/data.js';import {compatibility,totals,powerEstimate,suggestUpgrade,parseImport} from '../src/logic.js';
+const good=presets[0].selection;
+test('balanced preset is compatible and has positive cost',()=>{assert.equal(compatibility(good).errors,0);assert.ok(totals(good).total>0)});
+test('totals add hardware and accessories exactly',()=>{const t=totals(good);assert.equal(t.total,t.hardware+t.accessories)});
+test('detects socket mismatch',()=>{const c=compatibility({...good,cpu:'cpu-14400f'});assert.ok(c.items.some(x=>x.title==='CPU socket mismatch'))});
+test('detects DDR mismatch',()=>{const c=compatibility({...good,ram:'ram-32d4'});assert.ok(c.items.some(x=>x.title==='Memory generation mismatch'))});
+test('detects case and motherboard form factor mismatch',()=>{const c=compatibility({...good,motherboard:'mb-b650'});assert.ok(c.items.some(x=>x.title==='Motherboard will not fit'))});
+test('detects too long GPU and too tall cooler',()=>{const c=compatibility({...good,case:'case-slim',gpu:'gpu-7800xt'});assert.ok(c.items.some(x=>x.title==='Graphics card is too long'));assert.ok(c.items.some(x=>x.title==='CPU cooler is too tall'));assert.equal(powerEstimate({...good,gpu:'gpu-7800xt'}),65+263+85)});
+test('detects PSU issue with higher-power configuration',()=>{const c=compatibility({...good,cpu:'cpu-7800x3d',gpu:'gpu-7800xt',psu:'psu-550'});assert.ok(c.items.some(x=>x.title==='Low PSU upgrade headroom'||x.title==='Power supply insufficient'))});
+test('missing core component gives warning',()=>{const c=compatibility({...good,cpu:null});assert.ok(c.items.some(x=>x.title==='Processor missing'))});
+test('upgrade respects budget',()=>{const u=suggestUpgrade(good,totals(good).total);assert.equal(u,null)});
+test('invalid imported ids cannot infiltrate config',()=>{assert.equal(parseImport('{"cpu":"fake","ram":"ram-32d5"}').cpu,null);assert.throws(()=>parseImport('garbage'))});
