@@ -1,0 +1,15 @@
+{
+  "name": "build-your-setup",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Interactive PC setup builder and compatibility checker",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test build-your-setup/tests/logic.test.js",
+    "check": "node --check server.js && node --check build-your-setup/src/app.js && node --test build-your-setup/tests/logic.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
